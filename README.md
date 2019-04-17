@@ -2,7 +2,7 @@
 A Tensorflow implementation of the deep attention model hierarchical model for the diagnosis of skin lesions, with two benchmark examples: ISIC 2017 and ISIC 2018.
 
 ## Recent updates
-1. Original submission
+1. Original submission coming soon...
 
 
 ## Reference
