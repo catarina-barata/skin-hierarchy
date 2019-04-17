@@ -1,4 +1,4 @@
-# An implementation of the deep attention model for the hiearchical diagnosis of skin lesions.
+# Deep Attention Model for the Hierarchical Diagnosis of Skin Lesions
 A Tensorflow implementation of the hierarchical model with two benchmark examples: ISIC 2017 and ISIC 2018.
 
 ## Recent updates
