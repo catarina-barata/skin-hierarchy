@@ -1,5 +1,5 @@
 # Hierarchical Diagnosis of Skin Lesions
-A Tensorflow implementation of the deep attention model hierarchical model for the diagnosis of skin lesions, with two benchmark examples: ISIC 2017 and ISIC 2018.
+A Tensorflow implementation of the deep attention model hierarchical model for the diagnosis of skin lesions.
 
 ## Recent updates
 1. Original submissions coming soon...
