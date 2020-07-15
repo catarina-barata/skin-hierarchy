@@ -1,5 +1,5 @@
 # Hierarchical Diagnosis of Skin Lesions
-A Tensorflow implementation of the [**Deep Attention Hierarchical model**] for the diagnosis of skin lesions.
+A Tensorflow implementation of the **Deep Attention Hierarchical Model** for the diagnosis of skin lesions.
 
 https://www.sciencedirect.com/science/article/abs/pii/S0031320320302168
 
