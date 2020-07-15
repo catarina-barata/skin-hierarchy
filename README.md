@@ -1,24 +1,28 @@
 # Hierarchical Diagnosis of Skin Lesions
 A Tensorflow implementation of the deep attention model hierarchical model for the diagnosis of skin lesions.
 
-## Recent updates
-1. Original submissions coming soon...
-
+## Requirements
+Tensorflow version >= 1.13
+Python 3.6
 
 ## Reference
 
 ```
-
-@article{presented at ISBI,
-  title={DEEP LEARNING FOR SKIN CANCER DIAGNOSIS WITH HIERARCHICAL ARCHITECTURES},
-  author={Barata, Catarina and Marques, Jorge S},
-  year = {2019}
+@article{barata2020explainable,
+  title={Explainable Skin Lesion Diagnosis Using Taxonomies},
+  author={Barata, Catarina and Celebi, M Emre and Marques, Jorge S},
+  journal={Pattern Recognition},
+  pages={107413},
+  year={2020},
+  publisher={Elsevier}
 }
 
-
-@article{accepted for publication at ISIC@CVPR_Workshop,
-  title={Deep Attention Model for the Hierarchical Diagnosis of Skin Lesions},
-  authors={Barata, C. and Celebi, M. E. and Marques, J. S.},
+@inproceedings{barata2019deep,
+  title={Deep attention model for the hierarchical diagnosis of skin lesions},
+  author={Barata, Catarina and Marques, Jorge S and Emre Celebi, M},
+  booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition Workshops},
+  pages={0--0},
   year={2019}
 }
+
 ```
