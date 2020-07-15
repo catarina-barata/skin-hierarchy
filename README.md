@@ -15,7 +15,7 @@ Tensorflow version >= 1.13
 Python 3.6
 
 ## Usage
-1) Download ImageNet pre-trained checkpoints from and add to the **checkpoints** folder
+1) Download ImageNet pre-trained checkpoints from **https://tinyurl.com/y7s4tald** and add to the **checkpoints** folder
 
 2) Download the dataset tf recorders from and add to the **data** folder or create your own hierarchical tf records
 
