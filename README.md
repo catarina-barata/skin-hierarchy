@@ -1,9 +1,13 @@
 # Hierarchical Diagnosis of Skin Lesions
-A Tensorflow implementation of the [**Deep Attention Hierarchical model**] for the diagnosis of skin lesions.
+A Tensorflow implementation of the **Deep Attention Hierarchical Model** for the diagnosis of skin lesions.
+
+![](./imgs/system.jpg)
+
+Block diagram of the proposed system. The colors identify the channel and spatial attention weights ($\beta_{t}$ and $\alpha_{t}$) associated with each of the sequential diagnosis.
 
 https://www.sciencedirect.com/science/article/abs/pii/S0031320320302168
 
-![](./imgs/system.jpg)
+https://openaccess.thecvf.com/content_CVPRW_2019/html/ISIC/Barata_Deep_Attention_Model_for_the_Hierarchical_Diagnosis_of_Skin_Lesions_CVPRW_2019_paper.html
 
 ## Requirements
 Tensorflow version >= 1.13
@@ -11,7 +15,7 @@ Tensorflow version >= 1.13
 Python 3.6
 
 ## Usage
-1) Download ImageNet pre-trained checkpoints from and add to the **checkpoints"" folder
+1) Download ImageNet pre-trained checkpoints from **https://tinyurl.com/y7s4tald** and add to the **checkpoints** folder
 
 2) Download the dataset tf recorders from and add to the **data** folder or create your own hierarchical tf records
 
