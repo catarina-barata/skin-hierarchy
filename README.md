@@ -5,6 +5,7 @@ A Tensorflow implementation of the deep attention model hierarchical model for t
 
 ## Requirements
 Tensorflow version >= 1.13
+
 Python 3.6
 
 ## Reference
