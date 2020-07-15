@@ -1,13 +1,13 @@
 # Hierarchical Diagnosis of Skin Lesions
 A Tensorflow implementation of the **Deep Attention Hierarchical Model** for the diagnosis of skin lesions.
 
-https://www.sciencedirect.com/science/article/abs/pii/S0031320320302168
-
-https://openaccess.thecvf.com/content_CVPRW_2019/html/ISIC/Barata_Deep_Attention_Model_for_the_Hierarchical_Diagnosis_of_Skin_Lesions_CVPRW_2019_paper.html
-
 ![](./imgs/system.jpg)
 
 Block diagram of the proposed system. The colors identify the channel and spatial attention weights ($\beta_{t}$ and $\alpha_{t}$) associated with each of the sequential diagnosis.
+
+https://www.sciencedirect.com/science/article/abs/pii/S0031320320302168
+
+https://openaccess.thecvf.com/content_CVPRW_2019/html/ISIC/Barata_Deep_Attention_Model_for_the_Hierarchical_Diagnosis_of_Skin_Lesions_CVPRW_2019_paper.html
 
 ## Requirements
 Tensorflow version >= 1.13
