@@ -19,6 +19,8 @@ Python 3.6
 
 2) Download the dataset tf recorders from and add to the **data** folder or create your own hierarchical tf records
 
+3) To be added soon
+
 
 ## Reference
 
