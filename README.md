@@ -16,6 +16,8 @@ Tensorflow version >= 1.13
 
 Python 3.6
 
+This code uses functions form tf.slim.
+
 ## Usage
 1) Download ImageNet pre-trained checkpoints from **https://tinyurl.com/y7s4tald** and add to the **checkpoints** folder
 
