@@ -9,7 +9,7 @@ https://www.sciencedirect.com/science/article/abs/pii/S0031320320302168
 
 https://openaccess.thecvf.com/content_CVPRW_2019/html/ISIC/Barata_Deep_Attention_Model_for_the_Hierarchical_Diagnosis_of_Skin_Lesions_CVPRW_2019_paper.html
 
-The 5-fold cross validation used for the experiments with the ISIC 2018 challenge dataset are also available for proper comparisons.
+The 5-fold cross validation used for the experiments with the ISIC 2018 challenge dataset is also available for proper comparisons.
 
 ## Requirements
 Tensorflow version >= 1.13
