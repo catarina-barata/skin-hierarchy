@@ -274,7 +274,7 @@ def main(_):
 
     co_occur, vocab2,vocab, counts = da.preProBuildWordVocab(anno, word_count_threshold=20)
     
-    if not os.path.exists('/model'):
+    if not os.path.exists('model/'):
         os.mkdir('model/')
 
     if not os.path.exists(Flags.train_dir_log):
