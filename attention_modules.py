@@ -5,7 +5,11 @@ Created on Wed Jul 15 16:46:05 2020
 @author: acfba
 """
 
+
+
 import tensorflow as tf
+from tensorflow.contrib import slim
+
 
 def attention(data,state,dim_hidden,ratio,is_training):
         

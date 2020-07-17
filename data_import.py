@@ -12,7 +12,12 @@ from mittens import Mittens
 from mittens import GloVe
 import tensorflow as tf
 
+import numpy as np
+import csv
+
 from sklearn.feature_extraction.text import CountVectorizer
+from preprocessing import inception_preprocessing, densenet_preprocessing
+
 
 
 def _bytes_feature(value):
@@ -32,7 +37,7 @@ def get_captions(tfrecord):
 def preProBuildWordVocab(sentence_iterator, word_count_threshold=20):  # function from Andre Karpathy's NeuralTalk
 
     vectorizer = CountVectorizer(lowercase=False, dtype=np.float64, ngram_range=(1, 1),
-                                 stop_words=('Lesions', 'START', 'END'))
+                                 stop_words=('Lesions', 'START'))
 
     X = vectorizer.fit_transform(sentence_iterator)
 
@@ -45,7 +50,7 @@ def preProBuildWordVocab(sentence_iterator, word_count_threshold=20):  # functio
     return Xc.todense(), vocab, vocab2, np.diagonal(Xc.todense())
 
 
-glove_filename = "/home/catarinabarata/glove.6B.50d.txt"
+glove_filename = "checkpoints/glove.6B.50d.txt"
 
 
 def glove2dict(glove_filename):

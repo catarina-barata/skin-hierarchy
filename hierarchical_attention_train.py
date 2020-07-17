@@ -15,16 +15,14 @@ import os.path
 import sys
 import numpy as np
 import sklearn.metrics as metrics
+from tqdm import tqdm
 
-import csv
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
 
 import tensorflow as tf
 
-sys.path.insert(0,"C:/Users/acfba/Desktop/models-master/research/slim")
-
-from nets import densenet,resnet_v2,vgg
-from preprocessing import inception_preprocessing, densenet_preprocessing
+from nets import densenet,vgg
 
 
 from tensorflow.contrib import slim
@@ -41,7 +39,7 @@ def get_initial_lstm(data,dim_hidden,is_training):
  
     return tf.concat([initial_hidden,initial_memory],1)
 
-def apply_network_img(data_dense,data_incep,batch_size,is_training_net,is_training_drop,net):
+def apply_network_img(data_dense,batch_size,is_training_net,is_training_drop,net):
     
     if net=='D': #DenseNet-161
          with slim.arg_scope(densenet.densenet_arg_scope()):
@@ -51,18 +49,20 @@ def apply_network_img(data_dense,data_incep,batch_size,is_training_net,is_traini
     elif net=='V': #VGG-16    
          with slim.arg_scope(vgg.vgg_arg_scope()):
             logits,_ = vgg.vgg_16(data_dense,num_classes = None, is_training=is_training_drop,spatial_squeeze=False,
-               classification = False)
+               classification = False, max_pool=False)
                             
     return logits
  
-def apply_lstm(train_size,data,captions,weights,dim_hidden,dim_emb,dim_embed2,lstm,batch_size,n_lstm_steps,n_words,wordtoix,embedding,class_inf):
+def apply_lstm(train_size,data,captions,weights,dim_hidden,dim_emb,dim_embed2,lstm,n_lstm_steps,n_words,wordtoix,embedding,class_inf,net):
     
     data = da.transform_data(data, is_training=True)
-
-    data = apply_network_img(data, batch_size, is_training_net=False,
-                             is_training_drop=False)
     
-    data = tf.reshape(data, [None, -1, int(data.shape[3])])
+    data = apply_network_img(data, tf.shape(data)[0], is_training_net=False,
+                             is_training_drop=False,net=net)
+    
+    mid = data.get_shape()[1]
+    
+    data = tf.reshape(data,[-1, mid*mid, int(data.shape[3])])
     
     state = get_initial_lstm(tf.reduce_mean(data,1),dim_hidden,True)
 
@@ -75,13 +75,13 @@ def apply_lstm(train_size,data,captions,weights,dim_hidden,dim_emb,dim_embed2,ls
           trainable=False
           )
 
-    word_embedding = tf.zeros([batch_size, dim_embed2])
+    word_embedding = tf.zeros([tf.shape(data)[0], dim_embed2])
     
     total_loss = 0.0
     
     with tf.variable_scope("RNN",reuse=tf.AUTO_REUSE):
         
-        image_embedding,att_weights = att.attention(data,state,dim_emb,Flags.ratio,1)
+        image_embedding,att_weights = att.attention(data,state,int(data.shape[2]),Flags.ratio,1)
    
         current_embedding = tf.concat([image_embedding, word_embedding],axis=-1)  
         
@@ -110,7 +110,7 @@ def apply_lstm(train_size,data,captions,weights,dim_hidden,dim_emb,dim_embed2,ls
                             
                             logit = slim.fully_connected(logit, n_words,activation_fn=None,normalizer_fn=None,scope='word_encoding')
 ##
-                        onehot = tf.one_hot(tf.squeeze(tf.slice(current_caption_ind,[0,i],[batch_size,1]),1),n_words)
+                        onehot = tf.one_hot(tf.squeeze(tf.slice(current_caption_ind,[0,i],[tf.shape(data)[0],1]),1),n_words)
 #                        
                         if i==1:
                             one_hot_path = onehot
@@ -125,20 +125,20 @@ def apply_lstm(train_size,data,captions,weights,dim_hidden,dim_emb,dim_embed2,ls
                         weight = train_size/weight
                         
                         weight = tf.squeeze(weight/tf.reduce_mean(weight))
-                        
-                        xentropy = tf.losses.softmax_cross_entropy(onehot,logits=logit, weights=weight, loss_collection=None,reduction = tf.losses.Reduction.NONE)
+#                        
+                        xentropy = tf.losses.softmax_cross_entropy(onehot,logits=logit, weights=1.0, loss_collection=None,reduction = tf.losses.Reduction.NONE)
                         
                         total_loss+=(xentropy)
                         
                         if i==2:
                             error = tf.argmax(logit,1)
                     
-                            gt = tf.squeeze(tf.slice(current_caption_ind,[0,i],[batch_size,1]),1)
+                            gt = tf.squeeze(tf.slice(current_caption_ind,[0,i],[tf.shape(data)[0],1]),1)
                 
                             
-                 word_embedding = tf.nn.embedding_lookup(embedding_map, tf.squeeze(tf.slice(current_caption_ind,[0,i],[batch_size,1]),1))
+                 word_embedding = tf.nn.embedding_lookup(embedding_map, tf.squeeze(tf.slice(current_caption_ind,[0,i],[tf.shape(data)[0],1]),1))
                  
-                 image_embedding,att_weights = att.attention(data,state,dim_emb,Flags.ratio,True)
+                 image_embedding,att_weights = att.attention(data,state,int(data.shape[2]),Flags.ratio,True)
 
                  current_embedding = tf.concat([image_embedding, word_embedding],axis=-1)
      
@@ -154,14 +154,16 @@ def apply_lstm(train_size,data,captions,weights,dim_hidden,dim_emb,dim_embed2,ls
 
     return total_loss,error,gt
 
-def apply_lstm_gen(train_size,data,captions,weights,dim_hidden,dim_emb,dim_embed2,lstm,n_lstm_steps,n_words,wordtoix,batch_size,embedding,class_inf):
+def apply_lstm_gen(train_size,data,captions,weights,dim_hidden,dim_emb,dim_embed2,lstm,n_lstm_steps,n_words,wordtoix,embedding,class_inf,net):
     
     data = da.transform_data(data, is_training= False)
-
-    data = apply_network_img(data, batch_size, is_training_net=False,
-                             is_training_drop=False)
     
-    data = tf.reshape(data, [None, -1, int(data.shape[3])])
+    data = apply_network_img(data, tf.shape(data)[0], is_training_net=False,
+                             is_training_drop=False,net=net)
+    
+    mid = data.get_shape()[1]
+    
+    data = tf.reshape(data,[-1, mid*mid, int(data.shape[3])])
     
     state = get_initial_lstm(tf.reduce_mean(data,1),dim_hidden,False)
 
@@ -182,7 +184,7 @@ def apply_lstm_gen(train_size,data,captions,weights,dim_hidden,dim_emb,dim_embed
     all_words='#START#'
     with tf.variable_scope("RNN",reuse=tf.AUTO_REUSE):
         
-        image_embedding,att_weights = att.attention(data,state,dim_emb,Flags.ration,0)
+        image_embedding,att_weights = att.attention(data,state,int(data.shape[2]),Flags.ratio,0)
    
         current_embedding = tf.concat([image_embedding, word_embedding],axis=-1)  
         
@@ -229,7 +231,7 @@ def apply_lstm_gen(train_size,data,captions,weights,dim_hidden,dim_emb,dim_embed
  
                 previous_word = tf.nn.embedding_lookup(embedding_map, best_word) 
                 
-                image_embedding,att_weights = att.attention(data,state,dim_emb,Flags.ratio,0)
+                image_embedding,att_weights = att.attention(data,state,int(data.shape[2]),Flags.ratio,0)
 
                 current_embedding = tf.concat([image_embedding, previous_word],axis=-1)
 #                
@@ -256,8 +258,6 @@ def apply_lstm_gen(train_size,data,captions,weights,dim_hidden,dim_emb,dim_embed
 def change_checkpoint_name(var):
     return var.op.name.replace("train/densenet161",'densenet161')
 
-def change_checkpoint_name2(var):
-    return var.op.name.replace("train/resnet_v2_50",'resnet_v2_50')
 
 def change_checkpoint_name3(var):
     return var.op.name.replace("train/vgg_16",'vgg_16')
@@ -265,21 +265,26 @@ def change_checkpoint_name3(var):
 def main(_):
     dim_embed1 = Flags.feature_maps# Number of feature maps
     dim_embed2 = Flags.word_embedding# Word Embedding
-    dim_hidden = Flags.hidden_size# Hidden dimension LSTM
+    dim_hidden = Flags.dim_hidden# Hidden dimension LSTM
     
     #### Built Vocab ####
     anno = da.get_captions(Flags.tfrecord_train)
-#    
+
+    anno_val = da.get_captions(Flags.tfrecord_val)
+
     co_occur, vocab2,vocab, counts = da.preProBuildWordVocab(anno, word_count_threshold=20)
     
+    if not os.path.exists('/model'):
+        os.mkdir('model/')
+
     if not os.path.exists(Flags.train_dir_log):
         os.mkdir(Flags.train_dir_log)
 ##    
-    np.save('/tmp/model/co_occur', co_occur)
+    np.save('model/co_occur', co_occur)
     
-    np.save('/tmp/model/vocab', vocab)
+    np.save('model/vocab', vocab)
     
-    np.save('/tmp/model/counts', counts)
+    np.save('model/counts', counts)
     
     word_embedding = da.loadGloVe(co_occur,dim_embed2,vocab2,1)
 
@@ -292,14 +297,14 @@ def main(_):
         lstm = tf.nn.rnn_cell.LSTMCell(dim_hidden,state_is_tuple = False)
  
         lstm = tf.contrib.rnn.DropoutWrapper(lstm,input_keep_prob = 0.5,input_size = dim_embed1+dim_embed2,variational_recurrent=True, dtype=tf.float32)
-
+                
         dataset_train = tf.data.TFRecordDataset(Flags.tfrecord_train, num_parallel_reads=4)
 
         dataset_val = tf.data.TFRecordDataset(Flags.tfrecord_val, num_parallel_reads=4)
 
-        dataset_train = da.read_and_decode(dataset_train, Flags.train_batch_size, 1, Flags.train_dataset_size)
+        dataset_train = da.read_and_decode(dataset_train, Flags.train_batch_size, 1, len(anno))
 
-        dataset_val = da.read_and_decode(dataset_val, Flags.val_batch_size, 0, Flags.val_dataset_size)
+        dataset_val = da.read_and_decode(dataset_val, Flags.val_batch_size, 0, len(anno_val))
 
         train_val_iterator = tf.data.Iterator.from_structure(dataset_train.output_types, dataset_train.output_shapes)
         batch_x, batch_y = train_val_iterator.get_next()
@@ -312,11 +317,11 @@ def main(_):
             text = tf.string_split(batch_y)
             text = tf.sparse_tensor_to_dense(text, default_value=' ')
             
-            total_loss,error,gt = apply_lstm(Flags.train_dataset_size,batch_x,text,weights_vector,dim_hidden,dim_embed1,dim_embed2,lstm,
-                                   Flags.train_batch_size,maxlen,n_words,vocab,word_embedding,Flags.class_inf)
+            total_loss,pred,gt_train = apply_lstm(len(anno),batch_x,text,weights_vector,dim_hidden,dim_embed1,dim_embed2,lstm,
+                                    maxlen,n_words,vocab,word_embedding,Flags.class_inf,Flags.net)
             
-            total_loss_val,erro_val,word,gt_val = apply_lstm_gen(Flags.train_dataset_size,batch_x,text,weights_vector,dim_hidden,dim_embed1,dim_embed2,lstm,
-                                            maxlen,n_words,vocab,Flags.val_batch_size,word_embedding,Flags.class_inf)
+            total_loss_val,pred_val,word,gt_val = apply_lstm_gen(len(anno),batch_x,text,weights_vector,dim_hidden,dim_embed1,dim_embed2,lstm,
+                                            maxlen,n_words,vocab,word_embedding,Flags.class_inf,Flags.net)
         
         
         global_step = tf.Variable(0, trainable=False)
@@ -342,7 +347,7 @@ def main(_):
  
         def init_points(sess):
 
-            if net == 'dense':
+            if Flags.net == 'D':
                 restore = slim.get_model_variables('train/densenet161')
 
                 restore = {change_checkpoint_name(var): var for var in restore}
@@ -352,12 +357,12 @@ def main(_):
 
                 sess.run(init_points_dense_op, init_points_dense_feed_dict)
             else:
-                restore3 = slim.get_model_variables('train/vgg_16')
+                restore = slim.get_model_variables('train/vgg_16')
 
-                restore3 = {change_checkpoint_name3(var): var for var in restore3}
+                restore = {change_checkpoint_name3(var): var for var in restore}
 
                 init_points_vgg_op, init_points_vgg_feed_dict = slim.assign_from_checkpoint(
-                    os.path.join(Flags.checkpoint_dir, 'vgg_16.ckpt'), restore3)
+                    os.path.join(Flags.checkpoint_dir, 'vgg_16.ckpt'), restore)
 
                 sess.run(init_points_vgg_op, init_points_vgg_feed_dict)
         
@@ -369,9 +374,11 @@ def main(_):
 
             init_points(sess)
             
-            sess.run(iterator.initializer)
-
             tf.tables_initializer().run()
+            
+            train_writer = tf.summary.FileWriter(Flags.train_dir, sess.graph)
+
+            validation_writer = tf.summary.FileWriter(Flags.val_dir, sess.graph)
             
             for k in range(Flags.fine_tune,Flags.how_many_training_steps):
                 sess.run(train_iterator)
@@ -382,29 +389,28 @@ def main(_):
                 steps = 0
                 with slim.queues.QueueRunners(sess):
                         try:
-                            with tqdm(total=np.sum(counts)) as pbar:
+                            with tqdm(total=len(anno)) as pbar:
+                                while True:
 
-                                _,final_loss,err,true_label = sess.run([train_op,total_loss,error,gt])
-                                
-                                scores = np.append(scores, score)
-
-                                error = np.append(error, err)
-
-                                true_label = np.append(true_label, gt)
-                                
-                                pbar.update(Flags.train_batch_size)
-
-                                print('Epoch %s /%s Step %s /%s: Batch_loss is %f' % (
-                                k, Flags.how_many_training_steps-1, steps,
-                                (Flags.train_dataset_size // Flags.train_batch_size), final_loss))   
-                                
-                                steps += 1
+                                    _,final_loss,err,gt = sess.run([train_op,total_loss,pred,gt_train])
+                                    
+                                    scores = np.append(scores, final_loss)
+    
+                                    error = np.append(error, err)
+    
+                                    true_label = np.append(true_label, gt)
+                                    
+                                    pbar.update(Flags.train_batch_size)
+    
+                                    print('Epoch %s /%s Step %s /%s: Batch_loss is %f' % (
+                                    k, Flags.how_many_training_steps-1, steps,
+                                    (len(anno) // Flags.train_batch_size), final_loss))   
+                                    
+                                    steps += 1
                                 
                         except tf.errors.OutOfRangeError:
                             saver.save(sess, Flags.train_dir_log + '/model', global_step=k)
-    
-                saver.save(sess,Flags.train_dir_log + '\model',global_step = k)
-                
+                    
                 summary = tf.Summary(
                     value=[tf.Summary.Value(tag='losses/Train_Loss', simple_value=np.mean(scores))])
 
@@ -434,7 +440,7 @@ def main(_):
                 with slim.queues.QueueRunners(sess):
                     try:
                         while True:
-                            val_loss, err, gt = sess.run([total_loss_val, erro_val, true_val])
+                            val_loss, err, gt = sess.run([total_loss_val, pred_val, gt_val])
 
                             scores = np.append(scores, val_loss)
 
@@ -473,50 +479,50 @@ if __name__ == '__main__':
   parser.add_argument(
       '--tfrecord_train',
       type=str,
-      default='C:/Users/acfba/Desktop/Challenge_ISIC_2018/Cross_Validation/Fold_4/Training/train_full.tfrecords',
+      default='data/Fold_1_T3/Training/train_full_norm.tfrecords',
       help='Path to folders of train labeled images.'
   )
   parser.add_argument(
       '--tfrecord_val',
       type=str,
-      default='C:/Users/acfba/Desktop/Challenge_ISIC_2018/Cross_Validation/Fold_4/Validation/val_full.tfrecords',
+      default='data/Fold_1_T3/Validation/val_full_norm.tfrecords',
       help='Path to folders of validation labeled images.'
   )
   parser.add_argument(
       '--train_dir',
       type=str,
-      default='/tmp/model/training_fold4_4',
+      default='model/training_fold1',
       help='Place to save summaries and checkpoints.'
   )
   parser.add_argument(
       '--train_dir_log',
       type=str,
-      default='/tmp/model/checkpoints_fold4_4',
+      default='model/checkpoints_fold1',
       help='Place to save temporary checkpoints.'
   )
   parser.add_argument(
       '--val_dir',
       type=str,
-      default='/tmp/model/validation_fold4_4',
+      default='model/validation_fold1',
       help='Place to save summaries and checkpoints.'
      
   )
   parser.add_argument(
       '--checkpoint_dir',
       type=str,
-     default='C:/Users/acfba/Desktop/Challenge_ISIC_2017/checkpoints/',
+     default='checkpoints/',
      help='Path to checkpoint.'
   )
   parser.add_argument(
       '--net',
       type=str,
-      default='D',
-      help='Image encoder - "dense" (densenet-161) or "VGG" (vgg16).'
+      default='V',
+      help='Image encoder - "D" (densenet-161) or "V" (vgg16).'
   )
   parser.add_argument(
       '--feature_maps',
       type=int,
-      default= 2208,
+      default= 512,
       help='Number of feature maps: 2208 (DenseNet) or 512 (VGG).'
   )
   parser.add_argument(
@@ -556,22 +562,10 @@ if __name__ == '__main__':
       help='Size of your batch.'
   )
   parser.add_argument(
-      '--train_dataset_size',
-      type=int,
-      default=8012,
-      help='Size of your dataset.'
-  )
-  parser.add_argument(
       '--val_batch_size',
       type=int,
       default=20,
       help='Size of your batch.'
-  )
-  parser.add_argument(
-      '--val_dataset_size',
-      type=int,
-      default= 2003,
-      help='Size of your dataset.'
   )
   parser.add_argument(
       '--how_many_training_steps',
@@ -579,10 +573,10 @@ if __name__ == '__main__':
       default=120,
       help='How many epochs.'
   )
-    parser.add_argument(
+  parser.add_argument(
       '--ratio',
       type=int,
-      default=4,
+      default=None,
       help='Channel ratio reduction for channel attention ratio = int (if 0 without channel attention).'
   )
   Flags, unparsed = parser.parse_known_args()
