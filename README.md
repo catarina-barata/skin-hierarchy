@@ -25,7 +25,7 @@ This code uses functions form tf.slim.
 
 3) Train a hierarchical model using a specific fold, network, attention properties, batch_size, and number of epochs:
 
-python  hierarchical_attention_train.py --tfrecord_train "data\Fold_1_T3\Training\train_full_norm.tfrecords" --tfrecord_val "data\Fold_1_T3\Validation\val_full_norm.tfrecords" --net "V" --feature_maps 512 --train_batch_size 20 --ratio 2 --how_many_training_steps 150 
+E.g) python  hierarchical_attention_train.py --tfrecord_train "data\Fold_1_T3\Training\train_full_norm.tfrecords" --tfrecord_val "data\Fold_1_T3\Validation\val_full_norm.tfrecords" --net "V" --feature_maps 512 --train_batch_size 20 --ratio 2 --how_many_training_steps 150 
 
 ## Reference
 
