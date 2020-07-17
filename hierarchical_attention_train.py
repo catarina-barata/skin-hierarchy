@@ -326,8 +326,8 @@ def main(_):
         
         global_step = tf.Variable(0, trainable=False)
                    
-        boundaries = [int(0.5 * Flags.how_many_training_steps * (np.sum(counts) / (2*Flags.train_batch_size))),
-                      int(0.75 * Flags.how_many_training_steps * (np.sum(counts) / (2*Flags.train_batch_size)))]
+        boundaries = [int(0.5 * Flags.how_many_training_steps * (len(anno) / (Flags.train_batch_size))),
+                      int(0.75 * Flags.how_many_training_steps * (len(anno) / (Flags.train_batch_size)))]
 
         lr_init = [Flags.lr_init, Flags.lr_init/10, Flags.lr_init/100]
 
