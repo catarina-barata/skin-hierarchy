@@ -11,7 +11,7 @@ import tensorflow as tf
 from tensorflow.contrib import slim
 
 
-def attention(data,state,dim_hidden,ratio,is_training):
+def attention(data,state,dim_hidden,ratio,is_training,mid):
         
     state_expand = tf.expand_dims(state,1)
     
@@ -19,7 +19,10 @@ def attention(data,state,dim_hidden,ratio,is_training):
         #Channel attention
         states_score = slim.fully_connected(state_expand,dim_hidden//ratio,activation_fn=None,scope='score_state_ch')
         
-        data_ch = tf.reshape(data,[int(data.shape[0]),9,9,int(data.shape[2])])
+        data_ch = tf.reshape(data,[-1,mid,mid,int(data.shape[2])])
+
+        data_ch = tf.ensure_shape(data_ch, (None, mid,mid,
+                                            int(data.shape[3])))
     
         scale = channel_attention(data_ch,name='cha_att', ratio=ratio)
         

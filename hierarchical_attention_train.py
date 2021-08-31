@@ -81,7 +81,7 @@ def apply_lstm(train_size,data,captions,weights,dim_hidden,dim_emb,dim_embed2,ls
     
     with tf.variable_scope("RNN",reuse=tf.AUTO_REUSE):
         
-        image_embedding,att_weights = att.attention(data,state,int(data.shape[2]),Flags.ratio,1)
+        image_embedding,att_weights = att.attention(data,state,int(data.shape[2]),Flags.ratio,1,mid)
    
         current_embedding = tf.concat([image_embedding, word_embedding],axis=-1)  
         
@@ -138,7 +138,7 @@ def apply_lstm(train_size,data,captions,weights,dim_hidden,dim_emb,dim_embed2,ls
                             
                  word_embedding = tf.nn.embedding_lookup(embedding_map, tf.squeeze(tf.slice(current_caption_ind,[0,i],[tf.shape(data)[0],1]),1))
                  
-                 image_embedding,att_weights = att.attention(data,state,int(data.shape[2]),Flags.ratio,True)
+                 image_embedding,att_weights = att.attention(data,state,int(data.shape[2]),Flags.ratio,True,mid)
 
                  current_embedding = tf.concat([image_embedding, word_embedding],axis=-1)
      
@@ -184,7 +184,7 @@ def apply_lstm_gen(train_size,data,captions,weights,dim_hidden,dim_emb,dim_embed
     all_words='#START#'
     with tf.variable_scope("RNN",reuse=tf.AUTO_REUSE):
         
-        image_embedding,att_weights = att.attention(data,state,int(data.shape[2]),Flags.ratio,0)
+        image_embedding,att_weights = att.attention(data,state,int(data.shape[2]),Flags.ratio,0,mid)
    
         current_embedding = tf.concat([image_embedding, word_embedding],axis=-1)  
         
@@ -231,7 +231,7 @@ def apply_lstm_gen(train_size,data,captions,weights,dim_hidden,dim_emb,dim_embed
  
                 previous_word = tf.nn.embedding_lookup(embedding_map, best_word) 
                 
-                image_embedding,att_weights = att.attention(data,state,int(data.shape[2]),Flags.ratio,0)
+                image_embedding,att_weights = att.attention(data,state,int(data.shape[2]),Flags.ratio,0,mid)
 
                 current_embedding = tf.concat([image_embedding, previous_word],axis=-1)
 #                
