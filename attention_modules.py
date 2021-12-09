@@ -26,7 +26,7 @@ def attention(data,state,dim_hidden,ratio,is_training,mid):
     
         scale = channel_attention(data_ch,name='cha_att', ratio=ratio)
         
-        scale = tf.nn.tanh(tf.reshape(scale,[int(scale.shape[0]),-1,int(scale.shape[3])])+states_score)
+        scale = tf.nn.tanh(tf.reshape(scale,[tf.shape(scale)[0],-1,int(scale.shape[3])])+states_score)
         
         scale = tf.nn.sigmoid(slim.fully_connected(scale,dim_hidden,activation_fn=None,normalizer_fn=None,scope='ch_weights'))
         

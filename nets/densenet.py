@@ -25,8 +25,7 @@ from __future__ import print_function
 
 import tensorflow as tf
 
-slim = tf.contrib.slim
-
+from tensorflow.contrib import slim
 
 @slim.add_arg_scope
 def _global_avg_pool2d(inputs, data_format='NHWC', scope=None, outputs_collections=None):
