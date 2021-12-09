@@ -22,7 +22,7 @@ def attention(data,state,dim_hidden,ratio,is_training,mid):
         data_ch = tf.reshape(data,[-1,mid,mid,int(data.shape[2])])
 
         data_ch = tf.ensure_shape(data_ch, (None, mid,mid,
-                                            int(data.shape[3])))
+                                            int(data.shape[2])))
     
         scale = channel_attention(data_ch,name='cha_att', ratio=ratio)
         
